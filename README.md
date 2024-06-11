@@ -8,10 +8,11 @@
 
 ```
 # set TEMPORAL_CLOUD_API_KEY in your environment
-ts-node index.ts
+npm ci && npx ts-node index.ts
 ```
 
 #### Generate Typescript code from Temporal API Protobufs
+
 **This is not required if you clone this repo (as the generated files exist already)**
 
 ```
@@ -26,7 +27,7 @@ mkdir generated # this will hold the generated typescript files
 
 You'll need grpc-tools which is compatible with node (vs browser) js.
 
-`npm install -g grpc-tools`
+`npm install -g grpc-tools protoc-gen-ts`
 
 ```
 # generate Typescript from Google API protobufs (dependency)
