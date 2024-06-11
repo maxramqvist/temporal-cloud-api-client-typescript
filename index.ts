@@ -5,10 +5,12 @@ import { CloudServiceClient } from "./generated/temporal/api/cloud/cloudservice/
 import {
     CreateNamespaceRequest,
     GetNamespacesRequest,
-    GetNamespacesResponse,
 } from "./generated/temporal/api/cloud/cloudservice/v1/request_response_pb"
-import { NamespaceSpec } from "./generated/temporal/api/cloud/namespace/v1/message_pb"
-const TemporalCloudAPIVersion = "2023-10-01-00" // Define your API version
+import {
+    NamespaceSpec,
+    MtlsAuthSpec,
+} from "./generated/temporal/api/cloud/namespace/v1/message_pb"
+const TemporalCloudAPIVersion = "2024-05-13-00"
 const TemporalCloudAPIVersionHeader = "temporal-cloud-api-version" // Define the header name for the API version
 
 // Temporary Cloud API address
@@ -85,27 +87,26 @@ const main = async () => {
 
     const createNsReq = new CreateNamespaceRequest()
     const nsSpec = new NamespaceSpec()
+
+    // just this spec doesnt work, we get "Error: 7 PERMISSION_DENIED: Request unauthorized"
     nsSpec.setName("test-namespace")
     nsSpec.setRetentionDays(3)
     nsSpec.setRegionsList(["eu-west-central-1"])
-    /* 
 
-      namespace: 'tooling-dev.t212a',
-      resourceVersion: '87260f33-3b53-4f2a-a392-0cca6eea784d',
-      spec: [Object],
-      state: 'active',
-      asyncOperationId: '',
-      endpoints: [Object],
-      activeRegion: 'aws-eu-central-1',
-      limits: [Object],
-      privateConnectivitiesList: [],
-      createdTime: [Object],
-      lastModifiedTime: [Object],
-      regionStatusMap: []
-*/
+    // lets try to add the mTLS spec as a CA cert is required when creating a namespace in the UI
+    const mTlsSpec = new MtlsAuthSpec()
+    const caCert = process.env.TEMPORAL_CLOUD_MTLS_CA_CERT
+    if (!caCert) {
+        throw new Error("No CA cert provided")
+    }
+    mTlsSpec.setAcceptedClientCa(caCert)
+    nsSpec.setMtlsAuth(mTlsSpec)
+
     createNsReq.setSpec(nsSpec)
     console.log("Creating namespace with the following spec...")
     console.log(nsSpec.toObject())
+
+    // this still doesnt work, with "Error: 7 PERMISSION_DENIED: Request unauthorized"
     client.createNamespace(createNsReq, (error, response) => {
         if (error) {
             console.error("Error creating namespace:", error)
