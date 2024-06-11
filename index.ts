@@ -89,9 +89,9 @@ const main = async () => {
     const nsSpec = new NamespaceSpec()
 
     // just this spec doesnt work, we get "Error: 7 PERMISSION_DENIED: Request unauthorized"
-    nsSpec.setName("test-namespace")
+    nsSpec.setName("ts-lib-namespace")
     nsSpec.setRetentionDays(3)
-    nsSpec.setRegionsList(["eu-west-central-1"])
+    nsSpec.setRegionsList(["eu-central-1"])
 
     // lets try to add the mTLS spec as a CA cert is required when creating a namespace in the UI
     const mTlsSpec = new MtlsAuthSpec()
