@@ -1,67 +1,121 @@
 // set env variable TEMPORAL_CLOUD_API_KEY to your API key
 
-import * as grpc from '@grpc/grpc-js';
-import { CloudServiceClient } from './generated/temporal/api/cloud/cloudservice/v1/service_grpc_pb';
-import { GetUsersRequest, GetUserRequest, GetUsersResponse } from './generated/temporal/api/cloud/cloudservice/v1/request_response_pb';
+import * as grpc from "@grpc/grpc-js"
+import { CloudServiceClient } from "./generated/temporal/api/cloud/cloudservice/v1/service_grpc_pb"
+import {
+    CreateNamespaceRequest,
+    GetNamespacesRequest,
+    GetNamespacesResponse,
+} from "./generated/temporal/api/cloud/cloudservice/v1/request_response_pb"
+import { NamespaceSpec } from "./generated/temporal/api/cloud/namespace/v1/message_pb"
+const TemporalCloudAPIVersion = "2023-10-01-00" // Define your API version
+const TemporalCloudAPIVersionHeader = "temporal-cloud-api-version" // Define the header name for the API version
 
-const TemporalCloudAPIVersion = '2023-10-01-00'; // Define your API version
-const TemporalCloudAPIVersionHeader = 'temporal-cloud-api-version'; // Define the header name for the API version
+// Temporary Cloud API address
+const addr = "saas-api.tmprl.cloud:443"
+
+let client: CloudServiceClient | undefined
 
 // Setup the gRPC client
-function newConnectionWithAPIKey(addr: string, apiKey: string): CloudServiceClient {
-    const credentials = grpc.credentials.createSsl();
+const getClient = () => {
+    if (!client) {
+        const credentials = grpc.credentials.createSsl()
+        const apiKey = process.env.TEMPORAL_CLOUD_API_KEY
+        if (!apiKey) {
+            throw new Error(
+                "Please set the TEMPORAL_CLOUD_API_KEY environment variable"
+            )
+        }
+        // Append headers for each request
+        const callCredentials = grpc.credentials.createFromMetadataGenerator(
+            (params, callback) => {
+                const metadata = new grpc.Metadata()
+                metadata.set("authorization", `Bearer ${apiKey}`)
+                metadata.set(
+                    TemporalCloudAPIVersionHeader,
+                    TemporalCloudAPIVersion
+                ) // Set the API version here
+                callback(null, metadata)
+            }
+        )
 
-    // Append headers for each request
-    const callCredentials = grpc.credentials.createFromMetadataGenerator((params, callback) => {
-        const metadata = new grpc.Metadata();
-        metadata.set('authorization', `Bearer ${apiKey}`);
-        metadata.set(TemporalCloudAPIVersionHeader, TemporalCloudAPIVersion); // Set the API version here
-        callback(null, metadata);
-    });
-
-    // Combine SSL credentials with call credentials
-    const combinedCredentials = grpc.credentials.combineChannelCredentials(credentials, callCredentials);
-    const client = new CloudServiceClient(addr, combinedCredentials);
-
-    return client;
+        // Combine SSL credentials with call credentials
+        const combinedCredentials = grpc.credentials.combineChannelCredentials(
+            credentials,
+            callCredentials
+        )
+        client = new CloudServiceClient(addr, combinedCredentials)
+    }
+    return client
 }
 
-// Usage example
-const addr = 'saas-api.tmprl.cloud:443';
-const apiKey = process.env.TEMPORAL_CLOUD_API_KEY || '';
-
-const client = newConnectionWithAPIKey(addr, apiKey);
-
-client.waitForReady(Date.now() + 10000, (error) => {
-    // For each user, display their information and then their account access role
-    const request = new GetUsersRequest();
-    console.log('Request:', request);
-    client.getUsers(request, (error, response) => {
-        if (error) {
-            console.error('Error:', error);
-        } else {
-
-            if (response) {
-                const responseObject = response.toObject();
-                console.log('Response:', responseObject);
-
-                for (const user of responseObject.usersList) {
-                    // getUser
-                    const getUserRequest = new GetUserRequest();
-                    getUserRequest.setUserId(user.id);
-                    client.getUser(getUserRequest, (error, response) => {
-                        if (error) {
-                            console.error('Error:', error);
-                        } else {
-                            if (response) {
-                                const responseObject = response.toObject();
-                                console.log('Response:', responseObject);
-                                console.log('Access:', responseObject.user?.spec?.access?.accountAccess?.role);
-                            }
-                        }
-                    });
+const listNamespaces = async () => {
+    const client = getClient()
+    const listNsReq = new GetNamespacesRequest()
+    return new Promise((resolve, reject) => {
+        client.getNamespaces(listNsReq, (error, response) => {
+            if (error) {
+                reject(error)
+            } else {
+                if (response) {
+                    resolve(response.toObject())
                 }
             }
+        })
+    })
+}
+
+const main = async () => {
+    const client = getClient()
+    client.waitForReady(Date.now() + 10000, (error) => {
+        // this is a general error handler for connection errors on the client
+        if (error) {
+            console.error(
+                "Error waiting for Temporal Cloud Ops client to get ready:",
+                error
+            )
+            throw error
+        } else {
+            console.log("Temporal Cloud Ops client is ready ✅")
         }
-    });
-});
+    })
+
+    const namespaces = await listNamespaces()
+    console.log("Namespaces:", JSON.stringify(namespaces, null, 4))
+
+    const createNsReq = new CreateNamespaceRequest()
+    const nsSpec = new NamespaceSpec()
+    nsSpec.setName("test-namespace")
+    nsSpec.setRetentionDays(3)
+    nsSpec.setRegionsList(["eu-west-central-1"])
+    /* 
+
+      namespace: 'tooling-dev.t212a',
+      resourceVersion: '87260f33-3b53-4f2a-a392-0cca6eea784d',
+      spec: [Object],
+      state: 'active',
+      asyncOperationId: '',
+      endpoints: [Object],
+      activeRegion: 'aws-eu-central-1',
+      limits: [Object],
+      privateConnectivitiesList: [],
+      createdTime: [Object],
+      lastModifiedTime: [Object],
+      regionStatusMap: []
+*/
+    createNsReq.setSpec(nsSpec)
+    console.log("Creating namespace with the following spec...")
+    console.log(nsSpec.toObject())
+    client.createNamespace(createNsReq, (error, response) => {
+        if (error) {
+            console.error("Error creating namespace:", error)
+        } else {
+            if (response) {
+                const responseObject = response.toObject()
+                console.log("Created namespace response:", responseObject)
+            }
+        }
+    })
+}
+
+main()
