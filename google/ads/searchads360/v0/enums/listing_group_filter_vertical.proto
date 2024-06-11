@@ -38,7 +38,8 @@ message ListingGroupFilterVerticalEnum {
     // Used for return value only. Represents value unknown in this version.
     UNKNOWN = 1;
 
-    // Represents the shopping vertical.
+    // Represents the shopping vertical. The vertical is allowed only in
+    // Performance Max for Retail campaigns.
     SHOPPING = 2;
   }
 }

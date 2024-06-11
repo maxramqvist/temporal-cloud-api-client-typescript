@@ -1,4 +1,4 @@
-// Copyright 2023 Google LLC
+// Copyright 2024 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -162,6 +162,8 @@ message KmsConfig {
   option (google.api.resource) = {
     type: "netapp.googleapis.com/KmsConfig"
     pattern: "projects/{project}/locations/{location}/kmsConfigs/{kms_config}"
+    plural: "kmsConfigs"
+    singular: "kmsConfig"
   };
 
   // The KmsConfig States
@@ -205,8 +207,8 @@ message KmsConfig {
     MIGRATING = 11;
   }
 
-  // Output only. Name of the KmsConfig.
-  string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Identifier. Name of the KmsConfig.
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
   // Required. Customer managed crypto key resource full name. Format:
   // projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{key}.

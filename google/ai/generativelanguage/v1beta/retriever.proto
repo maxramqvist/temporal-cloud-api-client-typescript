@@ -1,4 +1,4 @@
-// Copyright 2023 Google LLC
+// Copyright 2024 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ message Corpus {
   ];
 
   // Optional. The human-readable display name for the `Corpus`. The display
-  // name must be no more than 128 characters in length, including spaces.
+  // name must be no more than 512 characters in length, including spaces.
   // Example: "Docs on Semantic Retriever"
   string display_name = 2 [(google.api.field_behavior) = OPTIONAL];
 

@@ -1,4 +1,4 @@
-// Copyright 2023 Google LLC
+// Copyright 2024 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package google.cloud.backupdr.logging.v1;
 
 option go_package = "cloud.google.com/go/backupdr/logging/apiv1/loggingpb;loggingpb";
 option java_multiple_files = true;
-option java_outer_classname = "BackupRecoveryJobReportLogProto";
+option java_outer_classname = "ReportLogProto";
 option java_package = "com.google.cloud.backupdr.logging.v1";
 option csharp_namespace = "Google.Cloud.BackupDR.Logging.V1";
 option php_namespace = "Google\\Cloud\\BackupDR\\Logging\\V1";
@@ -84,9 +84,9 @@ message BackupRecoveryJobReportLog {
   // associated with this job.
   string backup_rule_policy_name = 17;
 
-  // The backup_template field displays the name of the backup template for
-  // this application.
-  string backup_template = 18;
+  // The backup_plan_policy_template field displays the name of the backup plan
+  // for this application.
+  string backup_plan_policy_template = 18;
 
   // The backup_type field displays the type of backup taken: Log, Incremental
   // or Full Copy.
@@ -95,8 +95,8 @@ message BackupRecoveryJobReportLog {
   // The recovery_point field displays the timestamp of recovery point.
   string recovery_point = 20;
 
-  // The backup_consistency field displays whether the backup is crash consistent
-  // or application consistent.
+  // The backup_consistency field displays whether the backup is crash
+  // consistent or application consistent.
   string backup_consistency = 21;
 
   // The target_host_name field displays the target host name.
@@ -130,8 +130,8 @@ message BackupRecoveryJobReportLog {
   // backup to application size.
   double data_change_rate = 30;
 
-  // The resource_volume_size_in_gib field displays the virtual size in Gib.
-  double resource_volume_size_in_gib = 31;
+  // The snapshot_disk_size_in_gib field displays the snapshot disk size in Gib.
+  double snapshot_disk_size_in_gib = 31;
 
   // The data_written_in_gib field displays the amount of
   // remote data written in Gib.
@@ -161,4 +161,210 @@ message BackupRecoveryJobReportLog {
 
   // The target_appliance_id field displays the target appliance id.
   string target_appliance_id = 40;
+}
+
+// This is a UnprotectedResourceLogReport published as part of GCBDR
+// Reporting.
+message UnprotectedResourceReportLog {
+  // Required. Name of the host where the application/resource resides.
+  string host_name = 1;
+
+  // Required. Name of the application/resource.
+  string resource_name = 2;
+
+  // Required. Type of the application/resource.
+  string resource_type = 3;
+
+  // Optional. Name of the database instance for instance members.
+  string instance_name = 4;
+
+  // Required. Date when the Appliance was Discovered first.
+  string discovered_on = 5;
+
+  // Required. Name of the appliance on which it was discovered.
+  string discovered_by = 6;
+
+  // Required. Id of the Appliance
+  string appliance_id = 7;
+
+  // Required. Id of the application/resource
+  string resource_id = 8;
+
+  // Required. Id of the Host where the application/resource resides.
+  string host_id = 9;
+}
+
+// This is a DailyScheduleComplianceReportLog published as part of GCBDR
+// Reporting.
+message DailyScheduleComplianceReportLog {
+  // Required. Resource/App Name.
+  string resource_name = 1;
+
+  // Required. Resource/App Type.
+  string resource_type = 2;
+
+  // Required. Policy Name.
+  string backup_rule_policy_name = 3;
+
+  // Required. Policy Template Name.
+  string backup_plan_policy_template = 4;
+
+  // Required. Name of the host where the app/resource resides.
+  string host_name = 5;
+
+  // Required. Appliance Name.
+  string appliance_name = 6;
+
+  // Required. Date for which compliance is being reported.
+  string date = 7;
+
+  // Required. Backup Window Start time.
+  string backup_window_start_time = 8;
+
+  // Required. JobType of the policy.
+  string job_type = 9;
+
+  // Required. Compliance status for the policy.
+  string status = 10;
+
+  // Required. Description for the status reason.
+  string comment = 11;
+
+  // Required. Resource/App Id.
+  string resource_id = 12;
+
+  // Required. Host Id.
+  string host_id = 13;
+
+  // Required. Policy Template Id
+  string backup_plan_policy_template_id = 14;
+
+  // Required. Policy Id.
+  string backup_rule_policy_id = 15;
+
+  // Required. Appliance Id.
+  string appliance_id = 16;
+}
+
+// This is a BackupStorageUtilizationReportLog published as part of GCBDR
+// Reporting.
+message BackupStorageUtilizationReportLog {
+  // Optional. The appliance name.
+  string appliance_name = 1;
+
+  // Required. The storage resource type.
+  string storage_type = 2;
+
+  // Required. The storage pool name.
+  string pool_name = 3;
+
+  // Required. Total capacity of the pool in GiB.
+  double total_capacity_in_gib = 4;
+
+  // Required. Used capacity of the pool in GiB.
+  double used_capacity_in_gib = 5;
+
+  // Required. Utilization percentage of a storage pool.
+  double utilization_percentage = 6;
+
+  // Required. Appliance id.
+  string appliance_id = 7;
+}
+
+// Holds information for the Protected Resource
+message ProtectedResource {
+  // Required. Resource name.
+  string resource_name = 1;
+  // Required. Resource Type.
+  string resource_type = 2;
+  // Required. Resource ID.
+  string resource_id = 3;
+  // Optional. Backup Inclusion/Exclusion.
+  string backup_inclusion_or_exclusion = 4;
+  // Required. Host Id.
+  string host_id = 5;
+  // Required. Host Name.
+  string host_name = 6;
+  // Required. Backup Template ID.
+  string backup_plan_policy_template_id = 7;
+  // Required. Backup Template.
+  string backup_plan_policy_template = 8;
+  // Required. Sla Id.
+  string sla_id = 9;
+  // Required. Backup Plan restrictions.
+  string backup_plan_restrictions = 10;
+  // Required. Protected On.
+  string protected_on = 11;
+  // Optional. Policy Overrides.
+  string policy_overrides = 12;
+  // Optional. Source Appliance in case of streamsnap.
+  string source_appliance = 13;
+  // Optional. Source Appliance Id in case of streamsnap.
+  string source_appliance_id = 14;
+  // Required. Protected Data (GiB).
+  double protected_data_in_gib = 15;
+  // Optional. Onvault (GiB) .
+  double onvault_in_gib = 16;
+  // Optional. Originating Appliance in case of streamsnap.
+  string appliance_name = 17;
+  // Optional. Originating Appliance id in case of streamsnap.
+  string appliance_id = 18;
+  // Optional. Remote Appliance in case of streamsnap.
+  string remote_appliance = 19;
+  // Optional. Remote Appliance id in case of streamsnap.
+  string remote_appliance_id = 20;
+  // Optional. Recovery Point.
+  string recovery_point = 21;
+}
+
+// Holds information for the Mounted Images log
+message MountedImage {
+  // Required. Source Resource name.
+  string source_resource_name = 1;
+  // Required. Source Resource id.
+  string source_resource_id = 2;
+  // Required. Cluster Name.
+  string appliance_name = 3;
+  // Required. Cluster Id.
+  string appliance_id = 4;
+  // Required. Mounted Image Name.
+  string mounted_image_name = 5;
+  // Required. Source Image Name.
+  string source_image_name = 6;
+  // Required.Job Type.
+  string job_type = 7;
+  // Required. Recovery point Date.
+  string recovery_point_date = 8;
+  // Required. Last Mount Date
+  string last_mount_date = 9;
+  // Required. Resource type.
+  string resource_type = 10;
+  // Required. Source Host Name.
+  string source_host_name = 11;
+  // Required. Source Host Id.
+  string source_host_id = 12;
+  // Required. Mounted Host Name.
+  string mounted_host_name = 13;
+  // Required. Mounted Host Id.
+  string mounted_host_id = 14;
+  // Required. Mounted Resource Name.
+  string mounted_resource_name = 15;
+  // Required. Resource Virtual size(in GB)
+  string resource_virtual_size = 16;
+  // Required. Storage Consumed.
+  string storage_consumed = 17;
+  // Optional. label.
+  string mounted_resource_label = 18;
+  // Optional. Restorable Objects.
+  string restorable_object = 19;
+  // Required. Mount Duration.
+  string mount_duration = 20;
+  // Required. User Name.
+  string user_name = 21;
+  // Optional. Read Mode.
+  string read_mode = 22;
+  // Required. Resource size(in GB)
+  string resource_size = 23;
+  // Optional. Image Expiration Date
+  string image_expiration_date = 24;
 }

@@ -111,7 +111,6 @@ java_gapic_assembly_gradle_pkg(
         ":css_java_grpc",
         ":css_java_proto",
         ":css_proto",
-        "//google/api:api_java_proto", # Added manually
         "//google/shopping/type:type_java_proto", # Added manually
     ],
     include_samples = True,
@@ -264,7 +263,7 @@ load(
 
 nodejs_gapic_library(
     name = "css_nodejs_gapic",
-    package_name = "@google-cloud/css",
+    package_name = "@google-shopping/css",
     src = ":css_proto_with_info",
     extra_protoc_parameters = ["metadata"],
     grpc_service_config = "css_grpc_service_config.json",
@@ -310,7 +309,8 @@ ruby_cloud_gapic_library(
     name = "css_ruby_gapic",
     srcs = [":css_proto_with_info"],
     extra_protoc_parameters = [
-        "ruby-cloud-gem-name=google-cloud-shopping-css-v1",
+        "ruby-cloud-gem-name=google-shopping-css-v1",
+        "ruby-cloud-extra-dependencies=google-shopping-type=>0.0+<2.a",
     ],
     grpc_service_config = "css_grpc_service_config.json",
     rest_numeric_enums = True,
@@ -324,7 +324,7 @@ ruby_cloud_gapic_library(
 
 # Open Source Packages
 ruby_gapic_assembly_pkg(
-    name = "google-cloud-shopping-css-v1-ruby",
+    name = "google-shopping-css-v1-ruby",
     deps = [
         ":css_ruby_gapic",
         ":css_ruby_grpc",
