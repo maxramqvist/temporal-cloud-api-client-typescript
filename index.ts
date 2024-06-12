@@ -99,7 +99,14 @@ const main = async () => {
     if (!caCert) {
         throw new Error("No CA cert provided")
     }
-    mTlsSpec.setAcceptedClientCa(caCert)
+    // base64 encode ca cert
+    const base64CaCert = Buffer.from(caCert).toString("base64")
+    mTlsSpec.setAcceptedClientCa(base64CaCert)
+
+    // this prints the mTLS spec correctly but it still doesnt work and mTLS is not enabled
+    console.log("mTLS spec:")
+    console.log(mTlsSpec.toObject())
+
     nsSpec.setMtlsAuth(mTlsSpec)
 
     createNsReq.setSpec(nsSpec)
