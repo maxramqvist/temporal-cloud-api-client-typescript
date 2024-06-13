@@ -1,22 +1,20 @@
 // set env variable TEMPORAL_CLOUD_API_KEY to your API key
 
 import * as grpc from "@grpc/grpc-js"
-import { CloudServiceClient } from "./generated/temporal/api/cloud/cloudservice/v1/service_grpc_pb"
-import {
-    CreateNamespaceRequest,
-    GetNamespacesRequest,
-} from "./generated/temporal/api/cloud/cloudservice/v1/request_response_pb"
-import {
-    NamespaceSpec,
-    MtlsAuthSpec,
-} from "./generated/temporal/api/cloud/namespace/v1/message_pb"
+
+// temporal.api.cloud.cloudservice.v1
+import { temporal as TemporalCloudServiceService } from "./generated/temporal/api/cloud/cloudservice/v1/service"
+import { temporal as TemporalCloudServiceRequestResponse } from "./generated/temporal/api/cloud/cloudservice/v1/request_response"
+import { temporal as TemporalNamespaceMessage } from "./generated/temporal/api/cloud/namespace/v1/message"
 const TemporalCloudAPIVersion = "2024-05-13-00"
 const TemporalCloudAPIVersionHeader = "temporal-cloud-api-version" // Define the header name for the API version
 
 // Temporary Cloud API address
 const addr = "saas-api.tmprl.cloud:443"
 
-let client: CloudServiceClient | undefined
+let client:
+    | TemporalCloudServiceService.api.cloud.cloudservice.v1.CloudServiceClient
+    | undefined
 
 // Setup the gRPC client
 const getClient = () => {
@@ -46,16 +44,21 @@ const getClient = () => {
             credentials,
             callCredentials
         )
-        client = new CloudServiceClient(addr, combinedCredentials)
+        client =
+            new TemporalCloudServiceService.api.cloud.cloudservice.v1.CloudServiceClient(
+                addr,
+                combinedCredentials
+            )
     }
     return client
 }
 
 const listNamespaces = async () => {
     const client = getClient()
-    const listNsReq = new GetNamespacesRequest()
+    const listNsReq =
+        new TemporalCloudServiceRequestResponse.api.cloud.cloudservice.v1.GetNamespacesRequest()
     return new Promise((resolve, reject) => {
-        client.getNamespaces(listNsReq, (error, response) => {
+        client.GetNamespaces(listNsReq, (error, response) => {
             if (error) {
                 reject(error)
             } else {
@@ -85,36 +88,52 @@ const main = async () => {
     const namespaces = await listNamespaces()
     console.log("Namespaces:", JSON.stringify(namespaces, null, 4))
 
-    const createNsReq = new CreateNamespaceRequest()
-    const nsSpec = new NamespaceSpec()
+    const createNsReq =
+        new TemporalCloudServiceRequestResponse.api.cloud.cloudservice.v1.CreateNamespaceRequest()
+    const nsSpec =
+        new TemporalNamespaceMessage.api.cloud.namespace.v1.NamespaceSpec()
 
     // just this spec doesnt work, we get "Error: 7 PERMISSION_DENIED: Request unauthorized"
-    nsSpec.setName("ts-lib-namespace")
-    nsSpec.setRetentionDays(3)
-    nsSpec.setRegionsList(["eu-central-1"])
+    nsSpec.name = "ts-lib-namespace"
+
+    nsSpec.retention_days = 3
+    nsSpec.regions = ["eu-west-central-1"]
+
+    // this is what its called in the ui
+    // nsSpec.regions = ["eu-central-1"]
 
     // lets try to add the mTLS spec as a CA cert is required when creating a namespace in the UI
-    const mTlsSpec = new MtlsAuthSpec()
+    const mTlsSpec =
+        new TemporalNamespaceMessage.api.cloud.namespace.v1.MtlsAuthSpec()
     const caCert = process.env.TEMPORAL_CLOUD_MTLS_CA_CERT
     if (!caCert) {
         throw new Error("No CA cert provided")
     }
     // base64 encode ca cert
     const base64CaCert = Buffer.from(caCert).toString("base64")
-    mTlsSpec.setAcceptedClientCa(base64CaCert)
+    mTlsSpec.accepted_client_ca = base64CaCert
+    mTlsSpec.enabled = true
 
     // this prints the mTLS spec correctly but it still doesnt work and mTLS is not enabled
     console.log("mTLS spec:")
     console.log(mTlsSpec.toObject())
 
-    nsSpec.setMtlsAuth(mTlsSpec)
+    nsSpec.mtls_auth = mTlsSpec
 
-    createNsReq.setSpec(nsSpec)
+    const codecServerSpec =
+        new TemporalNamespaceMessage.api.cloud.namespace.v1.CodecServerSpec()
+
+    codecServerSpec.endpoint = "http://localhost:4321"
+    codecServerSpec.pass_access_token = true
+    codecServerSpec.include_cross_origin_credentials = true
+    nsSpec.codec_server = codecServerSpec
+
+    createNsReq.spec = nsSpec
     console.log("Creating namespace with the following spec...")
-    console.log(nsSpec.toObject())
+    console.log(JSON.stringify(nsSpec.toObject(), null, 4))
 
     // this still doesnt work, with "Error: 7 PERMISSION_DENIED: Request unauthorized"
-    client.createNamespace(createNsReq, (error, response) => {
+    client.CreateNamespace(createNsReq, (error, response) => {
         if (error) {
             console.error("Error creating namespace:", error)
         } else {
