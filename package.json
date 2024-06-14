@@ -13,6 +13,7 @@
   },
   "description": "",
   "devDependencies": {
+    "@types/google-protobuf": "^3.15.12",
     "@types/ws": "^8.5.10",
     "grpc-tools": "^1.12.4",
     "protoc-gen-ts": "^0.8.7",

@@ -97,7 +97,15 @@ const main = async () => {
     nsSpec.name = "ts-lib-namespace"
 
     nsSpec.retention_days = 3
-    nsSpec.regions = ["eu-west-central-1"]
+    // ${cloud-provider-prefix}-${region-name-seen-in-ui}
+    nsSpec.regions = ["aws-eu-central-1"]
+
+    // throw an error if any of the regions doesn't start with "aws-" or "gcp-"
+    nsSpec.regions.forEach((region) => {
+        if (!region.startsWith("aws-") && !region.startsWith("gcp-")) {
+            throw new Error("Invalid region")
+        }
+    })
 
     // this is what its called in the ui
     // nsSpec.regions = ["eu-central-1"]
@@ -123,7 +131,13 @@ const main = async () => {
     const codecServerSpec =
         new TemporalNamespaceMessage.api.cloud.namespace.v1.CodecServerSpec()
 
-    codecServerSpec.endpoint = "http://localhost:4321"
+    codecServerSpec.endpoint = "https://localhost:4321"
+
+    // throw an error if spec doesn't start with https
+    if (!codecServerSpec.endpoint.startsWith("https")) {
+        throw new Error("Endpoint must start with https")
+    }
+
     codecServerSpec.pass_access_token = true
     codecServerSpec.include_cross_origin_credentials = true
     nsSpec.codec_server = codecServerSpec
@@ -132,7 +146,6 @@ const main = async () => {
     console.log("Creating namespace with the following spec...")
     console.log(JSON.stringify(nsSpec.toObject(), null, 4))
 
-    // this still doesnt work, with "Error: 7 PERMISSION_DENIED: Request unauthorized"
     client.CreateNamespace(createNsReq, (error, response) => {
         if (error) {
             console.error("Error creating namespace:", error)
